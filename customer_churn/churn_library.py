@@ -15,6 +15,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 import joblib
 import pandas as pd
 import numpy as np
@@ -312,9 +313,14 @@ def train_models(X_train, X_test, y_train, y_test):  # pylint: disable=invalid-n
     os.makedirs('./models', exist_ok=True)
     os.makedirs('./images/results', exist_ok=True)
 
+    # Scale data for logistic regression
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
     # Grid search
     rfc = RandomForestClassifier(random_state=42)
-    lrc = LogisticRegression(solver='lbfgs', max_iter=3000)
+    lrc = LogisticRegression(solver='lbfgs', max_iter=3000, random_state=42)
 
     param_grid = {
         'n_estimators': [200, 500],
@@ -326,18 +332,19 @@ def train_models(X_train, X_test, y_train, y_test):  # pylint: disable=invalid-n
     cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
     cv_rfc.fit(X_train, y_train)
 
-    lrc.fit(X_train, y_train)
+    lrc.fit(X_train_scaled, y_train)
 
-    # Save best models
+    # Save best models and scaler
     joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
     joblib.dump(lrc, './models/logistic_model.pkl')
+    joblib.dump(scaler, './models/scaler.pkl')
 
     # Generate predictions
     y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
     y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
 
-    y_train_preds_lr = lrc.predict(X_train)
-    y_test_preds_lr = lrc.predict(X_test)
+    y_train_preds_lr = lrc.predict(X_train_scaled)
+    y_test_preds_lr = lrc.predict(X_test_scaled)
 
     # Generate classification reports
     classification_report_image(y_train,
@@ -351,8 +358,11 @@ def train_models(X_train, X_test, y_train, y_test):  # pylint: disable=invalid-n
     plt.figure(figsize=(15, 8))
     ax = plt.gca()
     RocCurveDisplay.from_estimator(
-        cv_rfc.best_estimator_, X_test, y_test, ax=ax, alpha=0.8)
-    RocCurveDisplay.from_estimator(lrc, X_test, y_test, ax=ax, alpha=0.8)
+        cv_rfc.best_estimator_, X_test, y_test, ax=ax,
+        curve_kwargs={'alpha': 0.8})
+    RocCurveDisplay.from_estimator(
+        lrc, X_test_scaled, y_test, ax=ax,
+        curve_kwargs={'alpha': 0.8})
     plt.title('ROC Curves')
     plt.savefig('./images/results/roc_curve_result.png')
     plt.close()
