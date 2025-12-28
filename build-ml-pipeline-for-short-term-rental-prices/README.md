@@ -2,6 +2,10 @@
 ```bash
 mlflow run https://github.com/ptr-br/udacity_ml_dev_ops#build-ml-pipeline-for-short-term-rental-prices -v v0.1.1 -P hydra_options="etl.sample='sample2.csv'"
 ```
+
+## WANDB Link
+https://wandb.ai/ptr-br/nyc_airbnb
+
 # Build an ML Pipeline for Short-Term Rental Prices in NYC
 You are working for a property management company renting rooms and properties for short periods of 
 time on various rental platforms. You need to estimate the typical price for a given property based 
