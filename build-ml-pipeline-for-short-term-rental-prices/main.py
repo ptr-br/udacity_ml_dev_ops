@@ -32,13 +32,18 @@ def go(config: DictConfig):
     steps_par = config['main']['steps']
     active_steps = steps_par.split(",") if steps_par != "all" else _steps
 
+    # organizse paths for execution
+    root_dir = hydra.utils.get_original_cwd()
+    components_root = os.path.join(root_dir, config['main']['components_repository'])
+    src_root = os.path.join(root_dir, "src")
+
     # Move to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
         if "download" in active_steps:
             # Download file and load in W&B
             _ = mlflow.run(
-                f"{config['main']['components_repository']}/get_data",
+                os.path.join(components_root, "get_data"),
                 "main",
                 env_manager="conda",
                 parameters={
@@ -51,7 +56,7 @@ def go(config: DictConfig):
 
         if "basic_cleaning" in active_steps:
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "basic_cleaning"),
+                os.path.join(src_root, "basic_cleaning"),
                 "main",
                 parameters={
                     "input_artifact": "sample.csv:latest",
@@ -65,7 +70,7 @@ def go(config: DictConfig):
 
         if "data_check" in active_steps:
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "data_check"),
+                os.path.join(src_root, "data_check"),
                 "main",
                 parameters={
                     "csv": "clean_sample.csv:latest",
@@ -77,7 +82,8 @@ def go(config: DictConfig):
             )
 
         if "data_split" in active_steps:
-            _ = mlflow.run(f"{config['main']['components_repository']}/train_val_test_split",
+            _ = mlflow.run(
+                os.path.join(components_root, "train_val_test_split"),
                 "main",
                 parameters={
                     "input": "clean_sample.csv:latest",
@@ -98,7 +104,7 @@ def go(config: DictConfig):
             # step
 
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest"),
+                os.path.join(src_root, "train_random_forest"),
                 "main",
                 parameters={
                     "trainval_artifact": "trainval_data.csv:latest",
@@ -114,7 +120,8 @@ def go(config: DictConfig):
 
         if "test_regression_model" in active_steps:
 
-            _ = mlflow.run(f"{config['main']['components_repository']}/test_regression_model",
+            _ = mlflow.run(
+                os.path.join(components_root, "test_regression_model"),
                 "main",
                 parameters={
                     "mlflow_model": "random_forest_export:prod",
