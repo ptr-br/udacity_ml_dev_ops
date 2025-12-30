@@ -36,3 +36,14 @@ uv run pytest .
 uv run call_live_api.py
 ```
 > ⚠️ Live API calls are temporary and will be disabled soon to avoid cloud costs. Please refer to local setup.
+
+
+## Images
+### CI Pipeline
+![image](images/continuous_deloyment.png)
+### Example
+![image](images/example.png)
+#### Live Get
+![image](images/live_get.png)
+#### Live Post
+![image](images/live_post.png)
