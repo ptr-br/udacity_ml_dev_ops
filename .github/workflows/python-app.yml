@@ -24,4 +24,18 @@ jobs:
         run: uvx ruff check .
       - name: PyTest
         run: uv run pytest . -vv
+
+  deploy_render:
+    name: deploy on render
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        if: github.ref == 'refs/heads/main'
+        env:
+          dep_url: ${{ secrets.RENDER_KEY }}
+        run: |
+          curl "$dep_url"
       
