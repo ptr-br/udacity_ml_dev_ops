@@ -29,13 +29,11 @@ jobs:
     name: deploy on render
     needs: build
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-      - name: Deploy
-        if: github.ref == 'refs/heads/main'
+      - name: Trigger Render deploy
         env:
-          dep_url: ${{ secrets.RENDER_KEY }}
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          curl "$dep_url"
-      
+          set -euo pipefail
+          # Trigger deploy (no cache clear)
+          curl -fsSL -X POST "$HOOK"
