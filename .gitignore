@@ -113,3 +113,5 @@ mlruns/
 outputs/
 random_forest_dir/
 multirun/
+census_profile*
+*.csv

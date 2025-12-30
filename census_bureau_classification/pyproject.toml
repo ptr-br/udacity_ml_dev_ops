@@ -19,7 +19,8 @@ dependencies = [
   "jupyterlab",
   "fastapi",
   "uvicorn",
-  "pytest"
+  "pytest",
+  "ydata-profiling>=4.17.0",
 ]
 
 classifiers = [

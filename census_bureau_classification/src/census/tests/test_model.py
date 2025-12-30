@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.ensemble import RandomForestClassifier
 
-from census.data.clean_data import process
+from census.data.process_data import process
 from census.model.model import compute_model_metrics, inference, slice_performance, train_model
 
 

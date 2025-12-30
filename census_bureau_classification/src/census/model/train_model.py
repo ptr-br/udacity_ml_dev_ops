@@ -2,10 +2,10 @@ import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from census.data.clean_data import process
+from census.data.process_data import process
 from census.model.model import compute_model_metrics, inference, slice_performance, train_model
 
-DATA_PATH = "./src/census/data/cleaned_census.csv"
+DATA_PATH = "./cleaned_data.csv"
 MODEL_PATH = "model.joblib"
 ENCODER_PATH = "encoder.joblib"
 LB_PATH = "lb.joblib"

@@ -6,6 +6,11 @@ I used uv for this project setup. For running with conda please createe a venv, 
 uv sync --index https://pypi.org/simple/
 ```
 
+## Cean the data
+
+```bash
+uv run src/census/data/clean_data.py src/census/data/census.csv
+```
 
 ### Train the model
 ```bash

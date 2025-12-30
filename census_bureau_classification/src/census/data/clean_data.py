@@ -1,83 +1,117 @@
 import numpy as np
-from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
+import pandas as pd
+import sys
+from ydata_profiling import ProfileReport
+
+# Put the code for your API here.
 
 
-def _normalize_colname(s: str) -> str:
-    return s.strip().lower().replace(" ", "_").replace("-", "_")
+PROFILE = False
 
 
-def _safe_onehot_encoder(**kwargs):
-    try:
-        return OneHotEncoder(**kwargs)
-    except TypeError:
-        # older sklearn uses `sparse` instead of `sparse_output`
-        kwargs_alt = kwargs.copy()
-        if "sparse_output" in kwargs_alt:
-            kwargs_alt["sparse"] = kwargs_alt.pop("sparse_output")
-        return OneHotEncoder(**kwargs_alt)
+def load_and_clean(path, drop_cols=None, keep_sample_frac=None, verbose=True):
+    """
+    Load and clean census CSV.
 
-
-def process(X, categorical_features=[], label=None, training=True, encoder=None, lb=None):
-    """Process the data used in the machine learning pipeline.
-
-    Processes the data using one hot encoding for the categorical features and a
-    label binarizer for the labels. This can be used in either training or
-    inference/validation.
-
-    Note: depending on the type of model used, you may want to add in functionality that
-    scales the continuous data.
-
-    Inputs
-    ------
-    X : pd.DataFrame
-        Dataframe containing the features and label. Columns in `categorical_features`
-    categorical_features: list[str]
-        List containing the names of the categorical features (default=[])
-    label : str
-        Name of the label column in `X`. If None, then an empty array will be returned
-        for y (default=None)
-    training : bool
-        Indicator if training mode or inference/validation mode.
-    encoder : sklearn.preprocessing._encoders.OneHotEncoder
-        Trained sklearn OneHotEncoder, only used if training=False.
-    lb : sklearn.preprocessing._label.LabelBinarizer
-        Trained sklearn LabelBinarizer, only used if training=False.
+    Parameters
+    ----------
+    path : str or os.PathLike
+        Path to the input CSV file.
+    drop_cols : list[str] | None
+        Columns to drop from the cleaned DataFrame.
+    keep_sample_frac : float | None
+        If provided, sample this fraction of rows (0 < frac <= 1) for faster iteration.
+    verbose : bool
+        If True, print a brief info summary and sample rows.
 
     Returns
     -------
-    X : np.array
-        Processed data.
-    y : np.array
-        Processed labels if labeled=True, otherwise empty np.array.
-    encoder : sklearn.preprocessing._encoders.OneHotEncoder
-        Trained OneHotEncoder if training is True, otherwise returns the encoder passed
-        in.
-    lb : sklearn.preprocessing._label.LabelBinarizer
-        Trained LabelBinarizer if training is True, otherwise returns the binarizer
-        passed in.
+    pandas.DataFrame
+        Cleaned DataFrame with normalized column names and string values,
+        common numeric columns converted to nullable integers, missing values
+        normalized, categorical values canonicalized, duplicate rows removed
     """
 
-    if label is not None:
-        y = X[label]
-        X = X.drop([label], axis=1)
-    else:
-        y = np.array([])
+    df = pd.read_csv(path, header=0, dtype=str)
 
-    X_categorical = X[categorical_features].values
-    X_continuous = X.drop(categorical_features, axis=1)
+    df.columns = df.columns.str.strip().str.lower().str.replace(r"\s+", "_", regex=True)
 
-    if training is True:
-        encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-        lb = LabelBinarizer()
-        X_categorical = encoder.fit_transform(X_categorical)
-        y = lb.fit_transform(y.values).ravel()
-    else:
-        X_categorical = encoder.transform(X_categorical)
-        try:
-            y = lb.transform(y.values).ravel()
-        # Catch the case where y is None because we're doing inference.
-        except AttributeError:
-            pass
+    # trim whitespace
+    str_cols = df.select_dtypes(include=["object", "string"]).columns
+    df[str_cols] = df[str_cols].apply(lambda s: s.str.strip())
 
-    X = np.concatenate([X_continuous, X_categorical], axis=1)
-    return X, y, encoder, lb
+    df.replace({"?": np.nan, "": np.nan}, inplace=True)
+
+    if keep_sample_frac is not None:
+        df = df.sample(frac=keep_sample_frac, random_state=42).reset_index(drop=True)
+
+    int_cols = ["age", "education-num", "hours-per-week", "fnlgt", "capital-gain", "capital-loss"]
+    for c in int_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").astype("Int64")  # nullable integer
+
+    cat_cols = [
+        c
+        for c in df.columns
+        if c not in int_cols and c not in ("salary",) and df[c].dtype == "object"
+    ]
+    for c in cat_cols:
+        df[c] = df[c].str.lower().str.replace(r"[\s\-]+", "_", regex=True)
+
+    if "salary" in df.columns:
+        bins_required = {"<=50k", ">50k"}
+        present = set(df["salary"].dropna().astype(str).str.strip().str.lower().unique())
+
+        if present != bins_required:
+            missing = bins_required - present
+            extras = present - bins_required
+            raise ValueError(
+                f"salary column values mismatch. Missing: {missing or 'None'}. "
+                f"Unexpected: {extras or 'None'}."
+            )
+
+    #     df["salary_bin"] = (
+    #         df["salary"]
+    #         .astype(str)
+    #         .str.replace(r"\s+", "", regex=True)
+    #         .str.lower()
+    #         .map({"<=50k": 0, ">50k": 1})
+    #     )
+
+    # df = df[df["salary_bin"].notna()].reset_index(drop=True)
+    # df["salary_bin"] = df["salary_bin"].astype(int)
+    if drop_cols:
+        # drop_cols.append("salary")
+        df = df.drop(columns=[c for c in drop_cols if c in df.columns])
+
+    df = df.drop_duplicates().reset_index(drop=True)
+
+    if verbose:
+        print("cleaning summary:")
+        print(df.info(memory_usage="deep"))
+        print("sample:")
+        print(df.head())
+
+    return df
+
+
+def profile_data(path: pd.DataFrame) -> None:
+    profile = ProfileReport(df, title="Census Dataset Report", explorative=True)
+    # save to HTML
+    profile.to_file("census_profile_report.html")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python clean_data <file_path_to_data>")
+        raise SystemExit(2)
+
+    df = load_and_clean(
+        path=sys.argv[1], drop_cols=["fnlgt"], keep_sample_frac=None, verbose=True
+    )
+
+    if PROFILE:
+        profile_data(df)
+    
+    df.to_csv("./cleaned_data.csv")
+    print("Wrote dat to ./cleaned_data.csv")
