@@ -35,11 +35,13 @@ def main():
     slice_results = slice_performance(
         test, model, encoder, lb, categorical_features=CAT_FEATURES, label="salary"
     )
-    for feat, mapping in slice_results.items():
-        print(f"Slice results for {feat}:")
-        for val, metrics in mapping.items():
-            p, r, f = metrics
-            print(f"  {val}: precision={p:.3f}, recall={r:.3f}, f1={f:.3f}")
+    with open("slice_output.txt", "w") as output_file:
+        for feat, mapping in slice_results.items():
+            print(f"Slice results for {feat}:")
+            for val, metrics in mapping.items():
+                p, r, f = metrics
+                print(f"  {val}: precision={p:.3f}, recall={r:.3f}, f1={f:.3f}")
+                output_file.write(f"  {val}: precision={p:.3f}, recall={r:.3f}, f1={f:.3f}\n")
 
 
 if __name__ == "__main__":

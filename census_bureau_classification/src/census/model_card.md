@@ -17,8 +17,12 @@
 ## Evaluation Data
 - Held-out 20% test split from the cleaned dataset.
 - Slice evaluation performed per categorical feature to surface subgroup behavior.
-## Metrics
-_Please include the metrics used and your model's performance on those metrics._
+## Metrics 
+- Precision: 0.7317
+- Recall: 0.5903
+- F1 Score: 0.6534
+
+These metrics were computed on a held-out 20% test split.
 
 ## Ethical Considerations
 - Model can reflect and amplify biases correlated with sensitive attributes (race, sex, nationality).
