@@ -2,10 +2,23 @@ import numpy as np
 from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
 
 
-def process_data(
-    X, categorical_features=[], label=None, training=True, encoder=None, lb=None
-):
-    """ Process the data used in the machine learning pipeline.
+def _normalize_colname(s: str) -> str:
+    return s.strip().lower().replace(" ", "_").replace("-", "_")
+
+
+def _safe_onehot_encoder(**kwargs):
+    try:
+        return OneHotEncoder(**kwargs)
+    except TypeError:
+        # older sklearn uses `sparse` instead of `sparse_output`
+        kwargs_alt = kwargs.copy()
+        if "sparse_output" in kwargs_alt:
+            kwargs_alt["sparse"] = kwargs_alt.pop("sparse_output")
+        return OneHotEncoder(**kwargs_alt)
+
+
+def process(X, categorical_features=[], label=None, training=True, encoder=None, lb=None):
+    """Process the data used in the machine learning pipeline.
 
     Processes the data using one hot encoding for the categorical features and a
     label binarizer for the labels. This can be used in either training or

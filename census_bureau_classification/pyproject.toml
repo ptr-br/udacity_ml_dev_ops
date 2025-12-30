@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "census"
+version = "0.1.0"
+description = "Udacity census bureau classification"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Your Name" }]
+requires-python = ">=3.8,<3.9"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scikit-learn",
+  "joblib",
+  "jupyter",
+  "jupyterlab",
+  "fastapi",
+  "uvicorn"
+]
+
+classifiers = [
+  "Programming Language :: Python :: 3.8",
+  "Operating System :: OS Independent",
+]
+
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["census*"]
+exclude = ["census/screenshots*", "census/tests*"]
+
+[tool.setuptools.package-data]
+census = [
+  "data/**/*.csv",
+  "census_profile_report.html",
+  "*.joblib",
+]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+exclude = ["src/starter/screenshots", "dist", "build"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

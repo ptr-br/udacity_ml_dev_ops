@@ -119,7 +119,7 @@ dmypy.json
 
 # Data files (but keep small sample data)
 *.csv
-!starter/data/census.csv  # Keep the census dataset
+!census/data/census.csv  # Keep the census dataset
 
 # Large data directories
 data/large/
