@@ -1,5 +1,7 @@
 ### Installation
 
+I used uv for this project setup. For running with conda please createe a venv, activate it and use `python` insetead of `uv run`
+
 ```bash 
 uv sync --index https://pypi.org/simple/
 ```
@@ -9,6 +11,7 @@ uv sync --index https://pypi.org/simple/
 ```bash
 uv run src/census/model/train_model.py 
 ```
+
 
 
 
