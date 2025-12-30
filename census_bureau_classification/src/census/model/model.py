@@ -106,7 +106,9 @@ def slice_performance(
     results : dict
         Nested dict results[feature][value] = (precision, recall, f1)
     """
-    from census.data.process_data import process  # local import to avoid circulars and keep API clear
+    from census.data.process_data import (
+        process,  # local import to avoid circulars and keep API clear
+    )
 
     results = {}
     for cat in categorical_features:

@@ -17,10 +17,19 @@ uv run src/census/data/clean_data.py src/census/data/census.csv
 uv run src/census/model/train_model.py 
 ```
 
+### Run the API Locally 
+```bash
+uv run run.py
+```
+
+### Run tests (Model + API)
+```bash
+uv run pytest .
+``` 
 
 
 
-Working in a command line environment is recommended for ease of use with git and dvc. If on Windows, WSL1 or 2 is recommended.
+
 
 # Environment Set up
 * **Option 1: Using pip and venv (Recommended)**

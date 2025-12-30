@@ -1,6 +1,7 @@
+import sys
+
 import numpy as np
 import pandas as pd
-import sys
 from ydata_profiling import ProfileReport
 
 # Put the code for your API here.
@@ -9,14 +10,18 @@ from ydata_profiling import ProfileReport
 PROFILE = False
 
 
-def load_and_clean(path, drop_cols=None, keep_sample_frac=None, verbose=True):
+def load(path: str) -> pd.DataFrame:
+    return pd.read_csv(path, header=0, dtype=str)
+
+
+def clean(df: pd.DataFrame, drop_cols=None, keep_sample_frac=None, verbose=True) -> pd.DataFrame:
     """
-    Load and clean census CSV.
+    Clean census CSV.
 
     Parameters
     ----------
-    path : str or os.PathLike
-        Path to the input CSV file.
+    df : pd.DataFrame
+        DF containing data from the input CSV file.
     drop_cols : list[str] | None
         Columns to drop from the cleaned DataFrame.
     keep_sample_frac : float | None
@@ -31,8 +36,6 @@ def load_and_clean(path, drop_cols=None, keep_sample_frac=None, verbose=True):
         common numeric columns converted to nullable integers, missing values
         normalized, categorical values canonicalized, duplicate rows removed
     """
-
-    df = pd.read_csv(path, header=0, dtype=str)
 
     df.columns = df.columns.str.strip().str.lower().str.replace(r"\s+", "_", regex=True)
 
@@ -70,16 +73,6 @@ def load_and_clean(path, drop_cols=None, keep_sample_frac=None, verbose=True):
                 f"Unexpected: {extras or 'None'}."
             )
 
-    #     df["salary_bin"] = (
-    #         df["salary"]
-    #         .astype(str)
-    #         .str.replace(r"\s+", "", regex=True)
-    #         .str.lower()
-    #         .map({"<=50k": 0, ">50k": 1})
-    #     )
-
-    # df = df[df["salary_bin"].notna()].reset_index(drop=True)
-    # df["salary_bin"] = df["salary_bin"].astype(int)
     if drop_cols:
         # drop_cols.append("salary")
         df = df.drop(columns=[c for c in drop_cols if c in df.columns])
@@ -106,12 +99,10 @@ if __name__ == "__main__":
         print("Usage: python clean_data <file_path_to_data>")
         raise SystemExit(2)
 
-    df = load_and_clean(
-        path=sys.argv[1], drop_cols=["fnlgt"], keep_sample_frac=None, verbose=True
-    )
+    df = clean(load(path=sys.argv[1]), drop_cols=["fnlgt"], keep_sample_frac=None, verbose=True)
 
     if PROFILE:
         profile_data(df)
-    
+
     df.to_csv("./cleaned_data.csv")
     print("Wrote dat to ./cleaned_data.csv")
