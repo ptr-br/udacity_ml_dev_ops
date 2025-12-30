@@ -99,7 +99,7 @@ if __name__ == "__main__":
         print("Usage: python clean_data <file_path_to_data>")
         raise SystemExit(2)
 
-    df = clean(load(path=sys.argv[1]), drop_cols=["fnlgt"], keep_sample_frac=None, verbose=True)
+    df = clean(load(path=sys.argv[1]), drop_cols=["fnlgt"], keep_sample_frac=None, verbose=False)
 
     if PROFILE:
         profile_data(df)
