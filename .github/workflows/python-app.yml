@@ -36,6 +36,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           dep_url: ${{ secrets.RENDER_KEY }}
-        run: |
-          curl "$dep_url"
+        run: curl "$dep_url"
       
