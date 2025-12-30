@@ -1,6 +1,7 @@
-# tests/test_api.py
 from fastapi.testclient import TestClient
+
 from census.main import app
+
 
 def test_root_get():
     # Use context manager so FastAPI lifespan (artifact loading) runs
@@ -9,6 +10,7 @@ def test_root_get():
         assert resp.status_code == 200
         data = resp.json()
         assert data.get("message") == "Welcome to the FastAPI model inference service."
+
 
 def test_post_predict_le_50k():
     payload = {
@@ -33,6 +35,7 @@ def test_post_predict_le_50k():
         data = resp.json()
         assert "prediction" in data
         assert data["prediction"] == "<=50K"
+
 
 def test_post_predict_gt_50k():
     payload = {

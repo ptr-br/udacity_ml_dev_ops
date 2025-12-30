@@ -1,7 +1,7 @@
 DATA_PATH = "./cleaned_data.csv"
-MODEL_PATH = "model.joblib"
-ENCODER_PATH = "encoder.joblib"
-LB_PATH = "lb.joblib"
+MODEL_PATH = "artifacts/model.joblib"
+ENCODER_PATH = "artifacts/encoder.joblib"
+LB_PATH = "artifacts/lb.joblib"
 
 CAT_FEATURES = [
     "workclass",

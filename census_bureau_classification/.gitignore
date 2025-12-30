@@ -111,7 +111,7 @@ dmypy.json
 # Machine Learning / Data Science specific
 # Models
 *.pkl
-*.joblib
+# *.joblib
 *.h5
 *.hdf5
 *.model
