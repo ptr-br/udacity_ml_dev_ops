@@ -1,50 +1,61 @@
-from flask import Flask, session, jsonify, request
+# app.py
+from flask import Flask, jsonify, request
 import pandas as pd
-import numpy as np
-import pickle
-import create_prediction_model
-import diagnosis 
-import predict_exited_from_saved_model
 import json
 import os
 
+# Our project modules
+import diagnostics
+import scoring
 
-
-######################Set up variables for use in our script
+###################### Set up variables
 app = Flask(__name__)
 app.secret_key = '1652d576-484a-49fd-913a-6879acfa6ba4'
 
 with open('config.json','r') as f:
-    config = json.load(f) 
+    config = json.load(f)
 
-dataset_csv_path = os.path.join(config['output_folder_path']) 
+dataset_csv_path = os.path.join(config['output_folder_path'])
+test_data_path = os.path.join(config['test_data_path'])
 
-prediction_model = None
-
-
-#######################Prediction Endpoint
+####################### Prediction Endpoint
 @app.route("/prediction", methods=['POST','OPTIONS'])
-def predict():        
-    #call the prediction function you created in Step 3
-    return #add return value for prediction outputs
+def predict():
+    # Expect JSON: {"filepath": "testdata/testdata.csv"}
+    fp = None
+    if request.method == 'POST':
+        body = request.get_json(silent=True) or {}
+        fp = body.get('filepath')
+    if not fp:
+        # Default to test data if not provided
+        fp = os.path.join(test_data_path, 'testdata.csv')
+    df = pd.read_csv(fp)
+    preds = diagnostics.model_predictions(df)
+    return jsonify({"predictions": preds}), 200
 
-#######################Scoring Endpoint
+####################### Scoring Endpoint
 @app.route("/scoring", methods=['GET','OPTIONS'])
-def stats():        
-    #check the score of the deployed model
-    return #add return value (a single F1 score number)
+def scoring_endpoint():
+    f1 = scoring.score_model()
+    return jsonify({"f1_score": f1}), 200
 
-#######################Summary Statistics Endpoint
+####################### Summary Statistics Endpoint
 @app.route("/summarystats", methods=['GET','OPTIONS'])
-def stats():        
-    #check means, medians, and modes for each column
-    return #return a list of all calculated summary statistics
+def summarystats():
+    stats = diagnostics.dataframe_summary()
+    return jsonify({"summary_statistics": stats}), 200
 
-#######################Diagnostics Endpoint
+####################### Diagnostics Endpoint
 @app.route("/diagnostics", methods=['GET','OPTIONS'])
-def stats():        
-    #check timing and percent NA values
-    return #add return value for all diagnostics
+def diags():
+    times = diagnostics.execution_time()
+    na_frac = diagnostics.missing_data()
+    deps = diagnostics.outdated_packages_list()
+    return jsonify({
+        "execution_time_sec": {"ingestion": times[0], "training": times[1]},
+        "missing_data_fraction_per_column": na_frac,
+        "outdated_packages": deps
+    }), 200
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000, debug=True, threaded=True)
