@@ -2,11 +2,14 @@
   "prediction": {
     "predictions": [
       1,
-      0
+      1,
+      1,
+      0,
+      1
     ]
   },
   "scoring": {
-    "f1_score": 0.0
+    "f1_score": 0.5714285714285715
   },
   "summarystats": {
     "summary_statistics": [
@@ -18,7 +21,7 @@
       2016.6093569309696,
       457.46153846153845,
       99.0,
-      800.6048328991891,
+      800.604832899189,
       0.5,
       0.5,
       0.5099019513592785
@@ -26,8 +29,8 @@
   },
   "diagnostics": {
     "execution_time_sec": {
-      "ingestion": 0.5299,
-      "training": 1.1572
+      "ingestion": 0.5646,
+      "training": 1.1549
     },
     "missing_data_fraction_per_column": [
       0.0,

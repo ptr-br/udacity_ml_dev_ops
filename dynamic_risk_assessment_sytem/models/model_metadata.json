@@ -1,1 +1,1 @@
-{"feature_cols": ["lastmonth_activity", "lastyear_activity", "number_of_employees"], "target_col": "exited", "best_C": 5.0}
+{"feature_cols": ["lastmonth_activity", "lastyear_activity", "number_of_employees"], "target_col": "exited", "best_C": 0.1}

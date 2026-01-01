@@ -10,31 +10,39 @@ import ast
 import reporting
 
 
-
 # Load config
-with open('config.json','r') as f:
+with open("config.json", "r") as f:
     config = json.load(f)
 
-input_folder_path       = os.path.join(config['input_folder_path'])
-output_folder_path      = os.path.join(config['output_folder_path'])
-output_model_path       = os.path.join(config['output_model_path'])
-prod_deployment_path    = os.path.join(config['prod_deployment_path'])
-test_data_path          = os.path.join(config['test_data_path'])
+input_folder_path = os.path.join(config["input_folder_path"])
+output_folder_path = os.path.join(config["output_folder_path"])
+output_model_path = os.path.join(config["output_model_path"])
+prod_deployment_path = os.path.join(config["prod_deployment_path"])
+test_data_path = os.path.join(config["test_data_path"])
+
 
 def list_csv(folder):
-    return sorted([f for f in os.listdir(folder)
-                   if os.path.isfile(os.path.join(folder, f)) and f.lower().endswith('.csv')])
+    return sorted(
+        [
+            f
+            for f in os.listdir(folder)
+            if os.path.isfile(os.path.join(folder, f)) and f.lower().endswith(".csv")
+        ]
+    )
+
 
 def run():
     ################## Check and read new data
     # first, read ingestedfiles.txt (from deployment dir)
-    ingested_record = os.path.join(prod_deployment_path, 'ingestedfiles.txt')
+    ingested_record = os.path.join(prod_deployment_path, "ingestedfiles.txt")
     already_ingested = []
     if os.path.exists(ingested_record):
-        content = open(ingested_record, 'r').read().strip()
+        content = open(ingested_record, "r").read().strip()
         if content:
             try:
-                already_ingested = ast.literal_eval(content)  # safely parse ["...","..."] or ['...','...']
+                already_ingested = ast.literal_eval(
+                    content
+                )  # safely parse ["...","..."] or ['...','...']
             except Exception:
                 # fallback: treat as empty if parsing fails
                 already_ingested = []
@@ -50,19 +58,19 @@ def run():
 
     print(f"New data detected: {new_files}. Running ingestion...")
     # Run ingestion.py to ingest all data (updates finaldata.csv and ingestedfiles.txt)
-    ret = subprocess.run(['python', 'ingestion.py'], capture_output=True, text=True)
+    ret = subprocess.run(["python", "ingestion.py"], capture_output=True, text=True)
     if ret.returncode != 0:
         raise RuntimeError(f"Ingestion failed:\n{ret.stderr}")
     print("Ingestion complete.")
 
     ################## Checking for model drift
     # 1) read score from deployed model (latestscore.txt in production_deployment)
-    deployed_score_path = os.path.join(prod_deployment_path, 'latestscore.txt')
+    deployed_score_path = os.path.join(prod_deployment_path, "latestscore.txt")
     if not os.path.exists(deployed_score_path):
         print("No deployed latestscore.txt found; treating as drift.")
         old_score = None
     else:
-        with open(deployed_score_path, 'r') as f:
+        with open(deployed_score_path, "r") as f:
             try:
                 old_score = float(f.read().strip())
             except Exception:
@@ -96,7 +104,7 @@ def run():
 
     print("Running API calls and saving combined outputs...")
     # Assumes app.py is running separately on port 8000; call apicalls.py to capture outputs
-    api_run = subprocess.run(['python', 'apicalls.py'], capture_output=True, text=True)
+    api_run = subprocess.run(["python", "apicalls.py"], capture_output=True, text=True)
     if api_run.returncode != 0:
         # Not fatal—just warn if API wasn’t reachable
         print(f"Warning: apicalls.py failed (is app.py running?):\n{api_run.stderr}")
@@ -105,5 +113,6 @@ def run():
 
     print("Full process complete.")
 
-if __name__ =="__main__":
+
+if __name__ == "__main__":
     run()

@@ -6,8 +6,7 @@ import os
 URL = "http://127.0.0.1:8000"
 
 if __name__ == "__main__":
-# Specify a URL that resolves to your workspace
-
+    # Specify a URL that resolves to your workspace
 
     # Load output path from config
     with open("config.json", "r") as f:
@@ -19,8 +18,10 @@ if __name__ == "__main__":
 
     # Call each API endpoint and store the responses
     base = URL.rstrip("/")  # ensure no trailing slash
-    response1 = requests.post(f"{base}/prediction",
-                            json={"filepath": os.path.join(config["test_data_path"], "testdata.csv")})
+    response1 = requests.post(
+        f"{base}/prediction",
+        json={"filepath": os.path.join(config["test_data_path"], "testdata.csv")},
+    )
     response2 = requests.get(f"{base}/scoring")
     response3 = requests.get(f"{base}/summarystats")
     response4 = requests.get(f"{base}/diagnostics")
@@ -28,7 +29,7 @@ if __name__ == "__main__":
         "prediction": response1.json(),
         "scoring": response2.json(),
         "summarystats": response3.json(),
-        "diagnostics": response4.json()
+        "diagnostics": response4.json(),
     }
 
     with open(out_file, "w") as f:
