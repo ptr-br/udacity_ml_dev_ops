@@ -25,15 +25,15 @@ jobs:
       - name: PyTest
         run: uv run pytest . -vv
 
-  deploy_render:
-    name: deploy on render
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Render deploy
-        env:
-          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: |
-          set -euo pipefail
-          # Trigger deploy (no cache clear)
-          curl -fsSL -X POST "$HOOK"
+  # deploy_render:
+  #   name: deploy on render
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Render deploy
+  #       env:
+  #         HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+  #       run: |
+  #         set -euo pipefail
+  #         # Trigger deploy (no cache clear)
+  #         curl -fsSL -X POST "$HOOK"
